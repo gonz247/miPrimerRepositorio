@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desktop Carousel</title>
+  <style>
+    .carousel {
+      overflow: hidden;
+      width: 100%;
+      display: flex;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .card {
+      flex: 0 0 100%;
+      box-sizing: border-box;
+      padding: 20px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<div class="carousel" id="carousel">
+  <div class="card">Card 1</div>
+  <div class="card">Card 2</div>
+  <div class="card">Card 3</div>
+  <!-- Add more cards as needed -->
+</div>
+
+<script>
+  const carousel = document.getElementById('carousel');
+  let startX, startTransform;
+
+  carousel.addEventListener('mousedown', (e) => {
+    startX = e.clientX;
+    startTransform = getComputedStyle(carousel).transform;
+  }, { passive: true });
+
+  carousel.addEventListener('mousemove', (e) => {
+    if (!startX) return;
+    const currentX = e.clientX;
+    const diffX = startX - currentX;
+
+    // Calculate the new translateX value
+    const translateX = startTransform.split(',')[4].replace(/\s/g, '') - diffX;
+
+    // Apply the new transform to the carousel
+    carousel.style.transform = `translateX(${translateX}px)`;
+  }, { passive: false });
+
+  carousel.addEventListener('mouseup', () => {
+    startX = null;
+    startTransform = null;
+
+    // Calculate the translateX difference between the start and end
+    const translateXDiff = getComputedStyle(carousel).transform.split(',')[4].replace(/\s/g, '') - startTransform.split(',')[4].replace(/\s/g, '');
+
+    // Reset the translateX if the swipe was too short
+    if (Math.abs(translateXDiff) < carousel.clientWidth / 3) {
+      carousel.style.transition = 'transform 0s';
+      carousel.style.transform = startTransform;
+      setTimeout(() => {
+        carousel.style.transition = 'transform 0.3s ease-in-out';
+      }, 0);
+    }
+    // Show the next or previous card if the swipe was long enough
+    else {
+      if (translateXDiff > 0) {
+        showNextCard();
+      } else {
+        showPrevCard();
+      }
+    }
+  }, { passive: true });
+
+  function showNextCard() {
+    const currentTranslateX = parseInt(getComputedStyle(carousel).transform.split(',')[4].replace(/\s/g, ''), 10);
+    const cardWidth = carousel.clientWidth;
+    const nextTranslateX = currentTranslateX - cardWidth;
+    carousel.style.transform = `translateX(${nextTranslateX}px)`;
+  }
+
+  function showPrevCard() {
+    const currentTranslateX = parseInt(getComputedStyle(carousel).transform.split(',')[4].replace(/\s/g, ''), 10);
+    const cardWidth = carousel.clientWidth;
+    const nextTranslateX = currentTranslateX + cardWidth;
+    carousel.style.transform = `translateX(${nextTranslateX}px)`;
+  }
+</script>
+
+</body>
+</html>
